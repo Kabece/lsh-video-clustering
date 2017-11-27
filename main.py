@@ -19,7 +19,7 @@ def iterateOverFiles():
         filename = os.fsdecode(file)
         average = averageVideo(filename)
         hashedImage = hashImage(average)
-        hashes[filename[:-4]] = hashedImage
+        hashes[hashedImage] = filename[:-4]
         data.append(hashedImage)
 
 def averageVideo(filename):
@@ -53,12 +53,27 @@ def levenshteinMetric(x, y):
 def clusterImages():
     global data
     X = np.arange(len(data)).reshape(-1,1)
-    pprint(X)
-    clusters = dbscan(X, metric=levenshteinMetric, eps=5, min_samples=2)
-    pprint(clusters)
+    return dbscan(X, metric=levenshteinMetric, eps=5, min_samples=2, n_jobs=-1)
+
+def interpretClusters(clusters):
+    global data, hashes
+    a = [None]*970
+    unclustered = set()
+    print(enumerate(clusters[1]))
+    for i, item in enumerate(clusters[1]):
+        if item != -1:
+            if a[item] is None:
+                a[item] = set()
+            a[item].add(hashes[data[i]])
+        else:
+            unclustered.add(hashes[data[i]])
+    a[len(a)] = unclustered
+    pprint(a)
+
 
 if __name__ == '__main__':
     start_time = time.time()
     iterateOverFiles()
-    clusterImages()
+    clusters = clusterImages()
+    interpretClusters(clusters)
     print("Execution time: %s seconds." % (time.time() - start_time))
