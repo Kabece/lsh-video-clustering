@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import time
 from pprint import pprint
@@ -8,21 +9,21 @@ from PIL import Image
 from leven import levenshtein
 from sklearn.cluster import dbscan
 
-sourceDirectory = 'C:/BigDataChallenge/test'
+sourceDirectory = 'C:/BigDataChallenge/videos'
 hashes = dict()
 data = []
 
+
 def iterateOverFiles():
     global hashes
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     directory = os.fsencode(sourceDirectory)
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        average = averageVideo(filename)
-        hashedImage = hashImage(average)
-        hashes[hashedImage] = filename[:-4]
-        data.append(hashedImage)
+    for tuple in pool.imap(averageVideo, os.listdir(directory)):
+        hashes[tuple[0]] = tuple[1]
+        data.append(tuple[0])
 
-def averageVideo(filename):
+def averageVideo(file):
+    filename = os.fsdecode(file)
     reader = imageio.get_reader(sourceDirectory + '/' + filename)
     average = None
     frames = 0
@@ -33,7 +34,7 @@ def averageVideo(filename):
         frames += 1
     average = average / frames
     reader.close()
-    return average
+    return (hashImage(average), filename[:-4])
 
 def hashImage(image):
     im = Image.fromarray(np.uint8(image))
@@ -59,7 +60,6 @@ def interpretClusters(clusters):
     global data, hashes
     interpretedClusters = [None]*970
     unclustered = set()
-    print(enumerate(clusters[1]))
     for i, item in enumerate(clusters[1]):
         if item != -1:
             if interpretedClusters[item] is None:
@@ -67,12 +67,13 @@ def interpretClusters(clusters):
             interpretedClusters[item].add(hashes[data[i]])
         else:
             unclustered.add(hashes[data[i]])
-    interpretedClusters[len(interpretedClusters)] = unclustered
+    interpretedClusters[len(interpretedClusters) - 1] = unclustered
     return interpretedClusters
 
 if __name__ == '__main__':
     start_time = time.time()
     iterateOverFiles()
     clusters = clusterImages()
-    interpretClusters(clusters)
+    interpretedClusters = interpretClusters(clusters)
+    pprint(interpretedClusters)
     print("Execution time: %s seconds." % (time.time() - start_time))
