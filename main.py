@@ -2038,7 +2038,7 @@ def rand_index(clusters):
                     return c
     # clean = [x for x in clusters if x is not None]
     # pprint(clean)
-    x = list(map(lambda e: ics(e, clean, 'clusters'), elems))
+    x = list(map(lambda e: ics(e, clusters, 'clusters'), elems))
     y = list(map(lambda e: ics(e, truth, 'truth'), elems))
 
     return adjusted_rand_score(x,y)
