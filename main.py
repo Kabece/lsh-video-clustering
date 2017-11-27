@@ -1,12 +1,16 @@
-import time
-import numpy as np
-import imageio
-from pprint import pprint
-from PIL import Image
 import os
+import time
+from pprint import pprint
 
-sourceDirectory = 'D:/BigDataChallenge/test'
+import imageio
+import numpy as np
+from PIL import Image
+from leven import levenshtein
+from sklearn.cluster import dbscan
+
+sourceDirectory = 'C:/BigDataChallenge/test'
 hashes = dict()
+data = []
 
 def iterateOverFiles():
     global hashes
@@ -14,7 +18,9 @@ def iterateOverFiles():
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         average = averageVideo(filename)
-        hashes[filename[:-4]] = hashImage(average)
+        hashedImage = hashImage(average)
+        hashes[filename[:-4]] = hashedImage
+        data.append(hashedImage)
 
 def averageVideo(filename):
     reader = imageio.get_reader(sourceDirectory + '/' + filename)
@@ -39,9 +45,20 @@ def hashImage(image):
     hash = int(bits,2).__format__('016x').upper()
     return hash
 
+def levenshteinMetric(x, y):
+    global data
+    i, j = int(x[0]), int(y[0])
+    return levenshtein(data[i], data[j])
+
+def clusterImages():
+    global data
+    X = np.arange(len(data)).reshape(-1,1)
+    pprint(X)
+    clusters = dbscan(X, metric=levenshteinMetric, eps=5, min_samples=2)
+    pprint(clusters)
+
 if __name__ == '__main__':
     start_time = time.time()
     iterateOverFiles()
-    pprint(hashes)
-    pprint(len(hashes))
+    clusterImages()
     print("Execution time: %s seconds." % (time.time() - start_time))
