@@ -57,19 +57,18 @@ def clusterImages():
 
 def interpretClusters(clusters):
     global data, hashes
-    a = [None]*970
+    interpretedClusters = [None]*970
     unclustered = set()
     print(enumerate(clusters[1]))
     for i, item in enumerate(clusters[1]):
         if item != -1:
-            if a[item] is None:
-                a[item] = set()
-            a[item].add(hashes[data[i]])
+            if interpretedClusters[item] is None:
+                interpretedClusters[item] = set()
+            interpretedClusters[item].add(hashes[data[i]])
         else:
             unclustered.add(hashes[data[i]])
-    a[len(a)] = unclustered
-    pprint(a)
-
+    interpretedClusters[len(interpretedClusters)] = unclustered
+    return interpretedClusters
 
 if __name__ == '__main__':
     start_time = time.time()
