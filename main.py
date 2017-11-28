@@ -11,7 +11,7 @@ from sklearn.cluster import dbscan
 from sklearn.metrics import adjusted_rand_score
 
 
-sourceDirectory = 'C:/BigDataChallenge/test'
+sourceDirectory = 'D:/BigDataChallenge/videos'
 hashes = dict()
 data = []
 
@@ -2036,10 +2036,12 @@ def rand_index(clusters):
                     if set_list_name == "clusters":
                         memory_clusters[element] = c
                     return c
-    # clean = [x for x in clusters if x is not None]
-    # pprint(clean)
-    x = list(map(lambda e: ics(e, clusters, 'clusters'), elems))
-    y = list(map(lambda e: ics(e, truth, 'truth'), elems))
+
+    a = list(map(lambda e: ics(e, clusters, 'clusters'), elems))
+    b = list(map(lambda e: ics(e, truth, 'truth'), elems))
+    x = [-1 if x is None else x for x in a]
+    y = [-1 if x is None else x for x in b]
+
 
     return adjusted_rand_score(x,y)
 
