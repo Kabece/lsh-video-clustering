@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import time
 from pprint import pprint
+import pickle
 
 import imageio
 import numpy as np
@@ -11,7 +12,7 @@ from sklearn.cluster import dbscan
 from sklearn.metrics import adjusted_rand_score
 
 
-sourceDirectory = 'C:/BigData/videos'
+sourceDirectory = 'C:/BigData/test2'
 hashes = dict()
 data = []
 
@@ -2048,9 +2049,25 @@ def rand_index(clusters):
 
     return adjusted_rand_score(x,y)
 
+def saveComputedValuesToFile():
+    global data, hashes
+    with open('C:/BigData/computed/data.txt', 'wb') as handle:
+        pickle.dump(data, handle)
+    with open('C:/BigData/computed/hashes.txt', 'wb') as handle2:
+        pickle.dump(hashes, handle2)
+
+def loadComputedValuesFromFile():
+    global data, hashes
+    with open('C:/BigData/computed/data.txt', 'rb') as handle:
+        data = pickle.loads(handle.read())
+    with open('C:/BigData/computed/hashes.txt', 'rb') as handle2:
+        hashes = pickle.loads(handle2.read())
+
 if __name__ == '__main__':
     start_time = time.time()
-    iterateOverFiles()
+    # iterateOverFiles()
+    # saveComputedValuesToFile()
+    loadComputedValuesFromFile()
     print("File operations finished in %s seconds." % (time.time() - start_time))
     clusters = clusterImages()
     print("Clustering finished in %s seconds." % (time.time() - start_time))
