@@ -11,7 +11,7 @@ from sklearn.cluster import dbscan
 from sklearn.metrics import adjusted_rand_score
 
 
-sourceDirectory = 'D:/BigDataChallenge/videos'
+sourceDirectory = 'C:/BigData/videos'
 hashes = dict()
 data = []
 
@@ -56,7 +56,7 @@ def levenshteinMetric(x, y):
 def clusterImages():
     global data
     X = np.arange(len(data)).reshape(-1,1)
-    return dbscan(X, metric=levenshteinMetric, eps=5, min_samples=2, n_jobs=-1)
+    return dbscan(X, metric=levenshteinMetric, eps=7, min_samples=9, n_jobs=-1)
 
 def interpretClusters(clusters):
     global data, hashes
@@ -69,7 +69,8 @@ def interpretClusters(clusters):
             interpretedClusters[item].add(hashes[data[i]])
         else:
             unclustered.add(hashes[data[i]])
-    interpretedClusters[len(interpretedClusters) - 1] = unclustered
+    # interpretedClusters[len(interpretedClusters) - 1] = unclustered
+    interpretedClusters.append(unclustered)
     return interpretedClusters
 
 # Copyright by David Kofoed Wind
@@ -2015,6 +2016,8 @@ def rand_index(clusters):
          'MTWOUICAOQHH', 'F8875AUQ1YW5', '2OBHSZIX0AMS']), set(
         ['PC9Q6BW6W8VQ', '4DDXSHKS2IO4', 'VQGCPX8Z6XGH', 'QBH7QIIFQ4UK', 'PJNRJE4KRMVA', 'VU18BXJ7E98V', 'SJM8AQIRRGEM',
          'JS2IGMCCE0UR', 'TQ8JXUOLLYM6', 'SHAG7PK12DY3'])]
+    truth2 = [set(['DMDR1U2RA7VN', 'K29U1709EA5R', 'D3NAY0YYFO4P', '58D4CGTDM5VX']), set(['NY0XRPCQX2J6', '5B15T46T75XM', 'QKPLUGBHWX1S', '90BP7NQLOZI8']),
+              set(['YS0M2FXHFUKK', 'KASAZL3RPKK6', 'ZILSSCBC40IR', 'NEFEWA5CEPMW']), set(['0TIBYZMOJD10', '3QBNSX4XCPSA', 'X3NC9RI7ZPUK', 'FRVXUX3X2S3R'])]
     elems = list(set.union(*truth))
 
     # Index of Containing Set
@@ -2048,7 +2051,10 @@ def rand_index(clusters):
 if __name__ == '__main__':
     start_time = time.time()
     iterateOverFiles()
+    print("File operations finished in %s seconds." % (time.time() - start_time))
     clusters = clusterImages()
+    print("Clustering finished in %s seconds." % (time.time() - start_time))
     interpretedClusters = interpretClusters(clusters)
+    print("Interpreting clusters finished in %s seconds." % (time.time() - start_time))
     pprint(rand_index(interpretedClusters))
     print("Execution time: %s seconds." % (time.time() - start_time))
