@@ -10,9 +10,10 @@ from PIL import Image
 from leven import levenshtein
 from sklearn.cluster import dbscan
 from sklearn.metrics import adjusted_rand_score
+import Pycluster as pc
 
 
-sourceDirectory = 'C:/BigData/test2'
+sourceDirectory = 'C:/BigData/videos'
 hashes = dict()
 data = []
 
@@ -23,7 +24,7 @@ def iterateOverFiles():
     directory = os.fsencode(sourceDirectory)
     for tuple in pool.imap(averageVideo, os.listdir(directory)):
         hashes[tuple[0]] = tuple[1]
-        data.append(tuple[0])
+        data.append(tuple[1])
 
 def averageVideo(file):
     filename = os.fsdecode(file)
@@ -37,7 +38,7 @@ def averageVideo(file):
         frames += 1
     average = average / frames
     reader.close()
-    return (hashImage(average), filename[:-4])
+    return (filename[:-4], hashImage(average))
 
 def hashImage(image):
     im = Image.fromarray(np.uint8(image))
@@ -56,8 +57,23 @@ def levenshteinMetric(x, y):
 
 def clusterImages():
     global data
-    X = np.arange(len(data)).reshape(-1,1)
-    return dbscan(X, metric=levenshteinMetric, eps=7, min_samples=9, n_jobs=-1)
+    dist = [levenshtein(data[i], data[j]) for i in range(1, len(data)) for j in range(0,i)]
+    labels, error, nfound = pc.kmedoids(dist, nclusters=970, npass=300)
+    return labels
+
+def interpretClusters2(clusters):
+    global data, hashes
+    interpretedClusters = [-1]*9700
+    for i, item in enumerate(clusters):
+        if interpretedClusters[item] == -1:
+            interpretedClusters[item] = set()
+        for key, value in hashes.items():
+            if value == data[i]:
+                interpretedClusters[item].add(key)
+                hashes[key] = -1
+    cleanInterpreted = [x for x in interpretedClusters if x != -1]
+    return cleanInterpreted
+
 
 def interpretClusters(clusters):
     global data, hashes
@@ -70,7 +86,6 @@ def interpretClusters(clusters):
             interpretedClusters[item].add(hashes[data[i]])
         else:
             unclustered.add(hashes[data[i]])
-    # interpretedClusters[len(interpretedClusters) - 1] = unclustered
     interpretedClusters.append(unclustered)
     return interpretedClusters
 
@@ -2071,7 +2086,7 @@ if __name__ == '__main__':
     print("File operations finished in %s seconds." % (time.time() - start_time))
     clusters = clusterImages()
     print("Clustering finished in %s seconds." % (time.time() - start_time))
-    interpretedClusters = interpretClusters(clusters)
+    interpretedClusters = interpretClusters2(clusters)
     print("Interpreting clusters finished in %s seconds." % (time.time() - start_time))
-    pprint(rand_index(interpretedClusters))
+    print(rand_index(interpretedClusters))
     print("Execution time: %s seconds." % (time.time() - start_time))
